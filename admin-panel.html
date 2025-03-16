@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #ff4e00;
+        }
+        .user-list {
+            width: 80%;
+            max-width: 1000px;
+            margin-bottom: 20px;
+        }
+        .user-list table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .user-list table, .user-list th, .user-list td {
+            border: 1px solid #ddd;
+        }
+        .user-list th, .user-list td {
+            padding: 10px;
+            text-align: center;
+        }
+        .button {
+            background-color: #ff4e00;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .button:hover {
+            background-color: #e64a19;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Panel Admin</h1>
+    
+    <div class="user-list">
+        <h3>Liste des utilisateurs</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom d'utilisateur</th>
+                    <th>Coins</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="user-table">
+                <!-- Les utilisateurs seront ajoutés dynamiquement ici -->
+            </tbody>
+        </table>
+    </div>
+
+    <button class="button" onclick="addCoinsToUser()">Ajouter des coins à un utilisateur</button>
+
+    <script>
+        // Fonction pour afficher les utilisateurs
+        window.onload = function() {
+            const users = Object.keys(localStorage);
+            const userTable = document.getElementById("user-table");
+
+            users.forEach(username => {
+                if (username !== "loggedInUser") {  // Ne pas afficher l'utilisateur admin
+                    const userData = JSON.parse(localStorage.getItem(username));
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${userData.username}</td>
+                        <td>${userData.coins}</td>
+                        <td><button class="button" onclick="addCoins('${userData.username}')">Ajouter 50 coins</button></td>
+                    `;
+                    userTable.appendChild(row);
+                }
+            });
+        };
+
+        // Fonction pour ajouter des coins à un utilisateur
+        function addCoins(username) {
+            const userData = JSON.parse(localStorage.getItem(username));
+            userData.coins += 50;  // Ajouter 50 coins à l'utilisateur
+            localStorage.setItem(username, JSON.stringify(userData));  // Sauvegarder les données mises à jour
+            alert("50 coins ont été ajoutés à " + username);
+            location.reload();  // Recharger la page pour mettre à jour la liste
+        }
+
+        // Fonction d'ajout de coins manuellement via le panel admin
+        function addCoinsToUser() {
+            const username = prompt("Entrez le nom d'utilisateur:");
+            const coinsToAdd = parseInt(prompt("Combien de coins souhaitez-vous ajouter ?"));
+
+            if (username && coinsToAdd) {
+                const userData = JSON.parse(localStorage.getItem(username));
+                if (userData) {
+                    userData.coins += coinsToAdd;
+                    localStorage.setItem(username, JSON.stringify(userData));
+                    alert(`${coinsToAdd} coins ont été ajoutés à ${username}`);
+                } else {
+                    alert("Utilisateur non trouvé !");
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>

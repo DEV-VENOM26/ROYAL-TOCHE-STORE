@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المتجر / Shop</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .product {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 200px;
+        }
+        .product img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+        button {
+            background-color: #ff4e00;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .logout { background-color: red; margin-top: 20px; }
+        .panel-buy input { width: 90%; padding: 8px; margin: 10px 0; }
+        .hidden { display: none; }
+
+        /* تحسين التصميم العام للحاوية */
+        #download-container {
+            font-family: 'Arial', sans-serif;
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        #download-container h3 {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+            letter-spacing: 1px;
+        }
+
+        #download-container a {
+            text-decoration: none;
+            background-color: #ff6f00;
+            color: white;
+            padding: 15px 35px;
+            border-radius: 8px;
+            font-size: 18px;
+            display: inline-block;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #download-container a:hover {
+            background-color: #ff8c00;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>مرحبا في المتجر ديالنا</h1>
+    <div class="coins">عندك <span id="coins">0</span> نقطة</div>
+
+    <div class="container">
+        <div class="product">
+            <img src="lspd.jpeg" alt="منتج 1">
+            <h3>منتج 1 - 20 نقطة</h3>
+            <button onclick="showBuyPanel(20, 'منتج 1')">أشتري</button>
+        </div>
+        <div class="product">
+            <img src="lspd.jpeg" alt="منتج 2">
+            <h3>منتج 2 - 35 نقطة</h3>
+            <button onclick="showBuyPanel(35, 'منتج 2')">أشتري</button>
+        </div>
+        <div class="product">
+            <img src="lspd.jpeg" alt="منتج 3">
+            <h3>منتج 3 - 50 نقطة</h3>
+            <button onclick="showBuyPanel(50, 'منتج 3')">أشتري</button>
+        </div>
+    </div>
+
+    <div id="download-container" style="display:none;">
+        <h3>تم الشراء بنجاح! الآن يمكنك تنزيل المنتج.</h3>
+        <a href="#" id="download-link" target="_blank">تحميل المنتج الآن</a>
+    </div>
+
+    <!-- Panel d'achat -->
+    <div id="buy-panel" class="panel-buy hidden">
+        <h2>معلومات الشراء</h2>
+        <input type="text" id="whatsapp" placeholder="رقم الواتساب">
+        <input type="text" id="promo-code" placeholder="كود الخصم (إدا كان عندك)">
+        <button onclick="completePurchase()">إتمام الشراء</button>
+        <button onclick="closePanel()">إغلاق</button>
+    </div>
+
+    <button class="logout" onclick="logout()">تسجيل خروج</button>
+
+    <script>
+        let selectedProduct = { cost: 0, name: "" };
+
+        window.onload = function() {
+            const loggedInUser = localStorage.getItem("loggedInUser");
+            if (!loggedInUser) {
+                window.location.href = "login.html";
+            } else {
+                let userData = JSON.parse(localStorage.getItem(loggedInUser)) || { coins: 0 };
+                document.getElementById("coins").innerText = userData.coins;
+            }
+        };
+
+        function showBuyPanel(cost, name) {
+            selectedProduct = { cost, name };
+            document.getElementById("buy-panel").classList.remove("hidden");
+        }
+
+        function completePurchase() {
+            let user = localStorage.getItem("loggedInUser");
+            let whatsapp = document.getElementById('whatsapp').value.trim();
+            let promoCode = document.getElementById('promo-code').value.trim();
+            let product = selectedProduct.name;
+
+            if (!user || !product) {
+                alert("❌ خطأ في عملية الشراء !");
+                return;
+            }
+
+            let userData = JSON.parse(localStorage.getItem(user));
+            if (userData.coins < selectedProduct.cost) {
+                alert("❌ ليس لديك نقاط كافية لإتمام الشراء!");
+                return;
+            }
+
+            // Deduct coins from the user's account
+            userData.coins -= selectedProduct.cost;
+            localStorage.setItem(user, JSON.stringify(userData));
+
+            document.getElementById("coins").innerText = userData.coins;
+
+            let downloadLink = getDownloadLinkForProduct(product);
+
+            let orders = JSON.parse(localStorage.getItem("orders")) || [];
+            orders.push({ user, product, whatsapp, promoCode, downloadLink });
+            localStorage.setItem("orders", JSON.stringify(orders));
+
+            alert("✅ تم الشراء بنجاح !");
+            showDownloadLink(downloadLink);
+            closePanel();
+        }
+
+        function getDownloadLinkForProduct(product) {
+            const productLinks = {
+                "منتج 1": "https://example.com/download/produit1",
+                "منتج 2": "https://example.com/download/produit2",
+                "منتج 3": "https://example.com/download/produit3"
+            };
+            return productLinks[product] || "رابط التحميل غير متوفر";
+        }
+
+        function showDownloadLink(link) {
+            const downloadContainer = document.getElementById("download-container");
+            downloadContainer.innerHTML = `
+                <p>تم الشراء بنجاح! يمكنك الآن تنزيل المنتج:</p>
+                <a href="${link}" target="_blank">تحميل المنتج</a>
+            `;
+            downloadContainer.style.display = 'block';
+        }
+
+        function closePanel() {
+            document.getElementById("buy-panel").classList.add("hidden");
+        }
+
+        function logout() {
+            localStorage.removeItem("loggedInUser");
+            window.location.href = "login.html";
+        }
+    </script>
+
+</body>
+</html>
