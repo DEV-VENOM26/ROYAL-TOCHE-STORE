@@ -77,7 +77,7 @@
 
             if (userData && userData.password === password) {
                 localStorage.setItem("loggedInUser", username);  // Enregistrer l'utilisateur connecté
-                window.location.href = "INDEX.HTML";  // Rediriger vers la boutique
+                window.location.href = "index.html";  // Rediriger vers la boutique
             } else {
                 document.getElementById("error-message").style.display = "block";  // Afficher un message d'erreur
             }
